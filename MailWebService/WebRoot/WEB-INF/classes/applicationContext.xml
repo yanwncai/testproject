@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx" xsi:schemaLocation="  
+            http://www.springframework.org/schema/beans  
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+            http://www.springframework.org/schema/context  
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd  
+            http://www.springframework.org/schema/aop  
+            http://www.springframework.org/schema/aop/spring-aop-3.0.xsd  
+            http://www.springframework.org/schema/tx  
+            http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+	<!-- 使用 annotation -->
+	<context:annotation-config />
+	<!-- 使用 annotation 自动注册bean,并检查@Controller, @Service, @Repository注解已被注入    -->
+	<context:component-scan base-package="*" />
+
+	<context:property-placeholder location="classpath:database.properties" />
+
+	<!-- 使用spring提供的jdbc数据源 DriverManagerDataSource没有连接池功能 -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${hibernate.connection.driver_class}" />
+		<property name="url" value="${hibernate.connection.url_jkgl}" />
+		<property name="username" value="${hibernate.connection.username_jkgl}" />
+		<property name="password" value="${hibernate.connection.password_jkgl}" />
+	</bean>
+	
+	<bean id="dataSource_CDC" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${hibernate.connection.driver_class}" />
+		<property name="url" value="${hibernate.connection.url_CDC}" />
+		<property name="username" value="${hibernate.connection.username_CDC}" />
+		<property name="password" value="${hibernate.connection.password_CDC}" />
+	</bean>
+
+	<!-- 配置p6spy 
+	<bean id="MydataSource" class="com.p6spy.engine.spy.P6DataSource">
+		<constructor-arg>
+			<ref local="dataSource" />
+		</constructor-arg>
+	</bean>-->
+	<!-- sessionFactory -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+		<!-- property name="configLocation" value="classpath:hibernate.cfg.xml" /> -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.use_sql_comments">true</prop><!-- SQL语句中自动注入注释 -->
+				<!-- 可以自动创建数据库表(create),不创建(none) 
+				<prop key="hibernate.hbm2ddl.auto">validate</prop>-->
+				<!-- 使用二级缓存 -->
+				<prop key="hibernate.cache.use_second_level_cache">true</prop>
+				<!--设置缓存的类型，设置缓存的提供商-->
+				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider
+				</prop>
+			</props>
+		</property>
+		<!-- 包扫描的方式加载注解类(推荐) -->
+		<property name="packagesToScan">
+			<list>
+				<value>*</value>
+			</list>
+		</property>
+	</bean>
+
+
+	<bean id="sessionFactory_CDC" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource_CDC" />
+		</property>
+		
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.use_sql_comments">true</prop><!-- SQL语句中自动注入注释 -->
+				<!-- 可以自动创建数据库表(create),不创建(none) 
+				<prop key="hibernate.hbm2ddl.auto">validate</prop>-->
+				<!-- 使用二级缓存 -->
+				<prop key="hibernate.cache.use_second_level_cache">true</prop>
+				<!--设置缓存的类型，设置缓存的提供商-->
+				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider
+				</prop>
+			</props>
+		</property>
+		<!-- 包扫描的方式加载注解类(推荐) -->
+		<property name="packagesToScan">
+			<list>
+				<value>*</value>
+			</list>
+		</property>
+	</bean>
+
+	<!--事务管理器 (声明式事务)-->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="find*" read-only="true" rollback-for="java.lang.Exception" />
+			<tx:method name="get*" read-only="true" rollback-for="java.lang.Exception" />
+			<tx:method name="load*" read-only="true" rollback-for="java.lang.Exception" />
+			<tx:method name="list*" read-only="true" rollback-for="java.lang.Exception" />
+			<tx:method name="insert*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			<tx:method name="save*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			<tx:method name="remove*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			<tx:method name="*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+		</tx:attributes>
+	</tx:advice>
+	
+	
+
+	<aop:config>
+		<!-- 配置参与事务的类（切面） 其中第一个*代表返回值，第二*通配，第三*代表service下子包，第四个*代表方法名，“（..）”代表方法参数。 -->
+		<aop:pointcut id="daoPointcut" expression="execution(* com.wondersgroup.*.services.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="daoPointcut" />
+	</aop:config>
+
+
+
+	<!-- 用注解来实现事务管理（需要在dao上加入@Transactional注解）
+		<tx:annotation-driven transaction-manager="transactionManager" />  
+	-->
+	
+		<!-- Spring 定时器配置 -->
+	<bean id="yyzytask" class="com.wondersgroup.JKGL.services.JkglService"></bean>
+	<bean id="yyzytaskTopSaleJobDetail"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="yyzytask"></property>
+		<property name="targetMethod" value="run"></property>
+	</bean>
+
+	<bean id="yyzytaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="yyzytaskTopSaleJobDetail" />
+		</property>
+		<property name="cronExpression">
+			<value>0 31 13 * * ?</value> 
+			<!-- <value>0 43 15 * * ?</value> --> 
+		</property>
+	</bean>
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="yyzytaskTrigger" />
+			</list>
+		</property>
+	</bean>
+
+	<!-- Spring 定时器配置 -->
+	
+	
+	
+</beans>

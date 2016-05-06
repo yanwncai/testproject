@@ -1,0 +1,26 @@
+#log4j.rootLogger=warn,errorlogfile,D,stdout
+log4j.rootLogger=debug,stdout,infofile,errorlogfile,D
+#,stdout
+
+
+log4j.appender.D = org.apache.log4j.RollingFileAppender
+log4j.appender.D.File = ../logs/mailWS_debugInfo.log
+log4j.appender.D.MaxFileSize=10240KB
+log4j.appender.D.MaxBackupIndex = 10000
+log4j.appender.D.Append = true
+log4j.appender.D.Threshold = DEBUG
+log4j.appender.D.layout = org.apache.log4j.PatternLayout
+log4j.appender.D.layout.ConversionPattern = [%d{yyyy-MM-dd HH/:mm/:ss}]%-5p %c(line/:%L) %x-%m%n
+
+log4j.appender.errorlogfile = org.apache.log4j.RollingFileAppender
+log4j.appender.errorlogfile.Threshold = ERROR
+log4j.appender.errorlogfile.File = ../logs/mailWS_errorInfo.log
+log4j.appender.errorlogfile.MaxFileSize=10240KB
+log4j.appender.errorlogfile.Append = true 
+log4j.appender.errorlogfile.layout = org.apache.log4j.PatternLayout
+log4j.appender.errorlogfile.layout.ConversionPattern =%d{yyyy-MM-dd HH\:mm\:ss} [%c] %m -(\:%L)%n 
+
+log4j.appender.stdout = org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target = System.out
+log4j.appender.stdout.layout = org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern = [%d{yyyy-MM-dd HH/:mm/:ss}]%-5p %c(line/:%L) %x-%m%n

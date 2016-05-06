@@ -1,0 +1,23 @@
+##########################
+### DataBase Platforms ###
+##########################
+hibernate.jdbc.batch_size 10
+jdbc.handler oracleLobHandler
+#jdbc.handler defaultLobHandler
+
+
+## Oracle
+hibernate.dialect org.hibernate.dialect.Oracle9Dialect
+#hibernate.connection.driver_class com.p6spy.engine.spy.P6SpyDriver
+hibernate.connection.driver_class oracle.jdbc.driver.OracleDriver
+
+#hibernate.connection.url jdbc:oracle:thin:@193.169.202.36:1521/ptwsdy
+#hibernate.connection.url jdbc:oracle:thin:@localhost:1521:orcl
+hibernate.connection.url_jkgl jdbc:oracle:thin:@(description=(address_list=(address=(host=193.169.202.33)(protocol=tcp)(port=1521))(address=(host=193.169.202.34)(protocol=tcp)(port=1521))(load_balance=yes)(failover=yes))(connect_data=(service_name= ptwsdy)))
+hibernate.connection.username_jkgl cnjk
+hibernate.connection.password_jkgl cnjk
+
+
+hibernate.connection.url_CDC jdbc:oracle:thin:@172.16.131.3:1521/ptdata
+hibernate.connection.username_CDC QZJ_EXCHANGE_CDC
+hibernate.connection.password_CDC qaz4rfv
